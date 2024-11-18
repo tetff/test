@@ -4,13 +4,11 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 )
 
 var (
 	ch         chan reqRes
-	wg         sync.WaitGroup
 	storedTime *time.Time
 )
 
@@ -20,12 +18,10 @@ type reqRes struct {
 }
 
 func main() {
-
 	ch = make(chan reqRes)
 	storedTime = &time.Time{}
 
 	mux := http.NewServeMux()
-
 	mux.HandleFunc("/", requestHandler)
 
 	println("Starting service. Listening on localhost:51104")

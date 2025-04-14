@@ -7,6 +7,34 @@ import (
 )
 
 func TestParseAndStoreTime(t *testing.T) {
+	success(t)
+}
+
+func TestParseAndStoreTimeStress(t *testing.T) {
+	for i := 0; i < 10000; i++ {
+		go func() {
+			success(t)
+		}()
+	}
+}
+
+func TestFailParseAndStoreTime(t *testing.T) {
+	fail(t)
+}
+
+func TestAlternatingSuccessAndFail(t *testing.T) {
+	success(t)
+	fail(t)
+	success(t)
+	success(t)
+	fail(t)
+	success(t)
+	success(t)
+	fail(t)
+	success(t)
+}
+
+func success(t *testing.T) {
 	testTime := time.Now()
 	storedTime = &testTime
 	storedTimeUnixString := strconv.FormatInt(storedTime.Unix(), 10)
@@ -18,10 +46,9 @@ func TestParseAndStoreTime(t *testing.T) {
 	if storedTime.Unix() != time.Now().Unix() {
 		t.Error("wrong parse value", storedTime.Unix())
 	}
-
 }
 
-func TestFailParseAndStoreTime(t *testing.T) {
+func fail(t *testing.T) {
 	err := parseAndStoreTime("this is not a number")
 	if err == nil {
 		t.Error("we were expecting an error")

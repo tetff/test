@@ -29,11 +29,11 @@ func main() {
 }
 
 func requestHandler(res http.ResponseWriter, req *http.Request) {
-	go processRequest()
 	if req.Header.Get("Content-Type") == "text/plain" {
 		println("sending request to processing")
 		res.Header().Add("Content-Type", "text/plain")
 		ch <- reqRes{req, res}
+		go processRequest()
 	} else {
 		res.WriteHeader(http.StatusBadRequest)
 		res.Header().Add("Content-Type", "text/plain")

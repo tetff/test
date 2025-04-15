@@ -1,7 +1,10 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -35,22 +38,33 @@ func TestAlternatingSuccessAndFail(t *testing.T) {
 }
 
 func success(t *testing.T) {
-	testTime := time.Now()
-	storedTime = &testTime
-	storedTimeUnixString := strconv.FormatInt(storedTime.Unix(), 10)
-	err := parseAndStoreTime(storedTimeUnixString)
+	reqBody := strings.NewReader(strconv.FormatInt(time.Now().Unix(), 10))
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:51104", reqBody)
+	req.Header.Add("Content-Type", "text/plain")
 	if err != nil {
-		t.Error("error parsing string: " + err.Error())
+		t.Error("error building request:", err)
 	}
 
-	if storedTime.Unix() != time.Now().Unix() {
-		t.Error("wrong parse value", storedTime.Unix())
+	res := httptest.NewRecorder()
+	requestHandler(res, req)
+
+	if res.Code != http.StatusOK {
+		t.Error("wrong response code:", res.Code)
 	}
 }
 
 func fail(t *testing.T) {
-	err := parseAndStoreTime("this is not a number")
-	if err == nil {
-		t.Error("we were expecting an error")
+	reqBody := strings.NewReader("This is not a number")
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:51104", reqBody)
+	req.Header.Add("Content-Type", "text/plain")
+	if err != nil {
+		t.Error("error building request:", err)
+	}
+
+	res := httptest.NewRecorder()
+	requestHandler(res, req)
+
+	if res.Code != http.StatusBadRequest {
+		t.Error("wrong response code:", res.Code)
 	}
 }
